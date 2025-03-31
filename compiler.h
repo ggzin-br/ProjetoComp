@@ -5,6 +5,19 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#define NUMERIC_CASE \
+    case '0':   \
+    case '1':  \
+    case '2':   \
+    case '3':  \
+    case '4':   \
+    case '5':  \
+    case '6':   \
+    case '7':  \
+    case '8':   \
+    case '9'
+
+
 enum {
     COMPILER_FILE_COMPILED_OK,
     COMPILER_FAILED_WITH_ERRORS
@@ -49,6 +62,8 @@ struct compile_process {
 struct token {
     int type;
     int flags;
+
+    struct pos pos; // Identificar onde o token está no arquivo
 
     union {
         char cval;

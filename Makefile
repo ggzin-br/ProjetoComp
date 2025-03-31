@@ -25,3 +25,6 @@ all: ${OBJECTS}
 clean:
 	rm ./main
 	rm -rf ${OBJECTS}
+
+clean_compiler_out:
+	rm ./outtest
