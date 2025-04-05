@@ -1,5 +1,6 @@
 #include "compiler.h"
 #include <string.h>
+#include <ctype.h>
 #include "helpers/vector.h"
 #include "helpers/buffer.h"
 
@@ -64,7 +65,33 @@ const char *read_number_str() {
 
     buffer_write(buffer, 0x00); // Finaliza a string
 
-    printf("Token: %s\n", buffer->data);
+    printf("Token (Number): %s\n", buffer->data);
+
+    return buffer_ptr(buffer);
+}
+
+const char *read_symbol_str() {
+    const char *str = NULL;
+    struct buffer *buffer = buffer_create();
+    char c = peekc();
+    buffer_write(buffer, c);
+    nextc();
+
+    buffer_write(buffer, 0x00);
+
+    printf("Token (Symbol): %s\n", buffer->data);
+
+    return buffer_ptr(buffer);
+}
+
+const char *read_string_str() {
+    struct buffer *buffer = buffer_create();
+    char c = nextc();
+    LEX_GETC_IF(buffer, c, (isalpha(c)));
+
+    buffer_write(buffer, 0x00); // Finaliza a string
+
+    printf("Token (String): %s\n", buffer->data);
 
     return buffer_ptr(buffer);
 }
@@ -74,14 +101,46 @@ unsigned long long read_number() {
     return atoll(s);
 }
 
+const char *read_symbol() {
+    const char *s = read_symbol_str();
+    return s;
+}
+
+const char *read_string() {
+    const char *s = read_string_str();
+    return s;
+}
+
 struct token *token_make_number_for_value(unsigned long number) {
     return token_create(&(struct token) {
-        .type=TOKEN_TYPE_NUMBER, .llnum=number
+        .type=TOKEN_TYPE_SYMBOL, .llnum=number
     });
 }
 
+struct token *token_make_symbol_for_value(const char *str) {
+    return token_create(&(struct token) {
+        .type=TOKEN_TYPE_SYMBOL, .sval=str
+    });
+}
+
+struct token *token_make_string_for_value(const char *str) {
+    return token_create(&(struct token) {
+        .type=TOKEN_TYPE_STRING, .sval=str
+    });
+}
+
+
+
 struct token *token_make_number() {
     return token_make_number_for_value(read_number());
+}
+
+struct token *token_make_symbol() {
+    return token_make_symbol_for_value(read_symbol());
+}
+
+struct token *token_make_string() {
+    return token_make_string_for_value(read_string());
 }
 
 struct token *read_next_token() {
@@ -94,6 +153,14 @@ struct token *read_next_token() {
     
     NUMERIC_CASE:
         token = token_make_number();
+    break;
+
+    SYMBOL_CASE:
+        token = token_make_symbol();
+    break;
+
+    STRING_CASE:
+        token = token_make_string();
     break;
 
     case ' ':
